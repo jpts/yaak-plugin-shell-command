@@ -20,8 +20,8 @@ export const plugin: PluginDefinition = {
                     label: "Shell Intepreter",
                     defaultValue: "/bin/sh",
                     options: [
-                        { label: "Bash", value: "/usr/bin/bash" },
-                        { label: "Zsh", value: "/usr/bin/zsh" },
+                        { label: "Bash", value: "/bin/bash" },
+                        { label: "Zsh", value: "/bin/zsh" },
                         { label: "sh", value: "/bin/sh" },
                     ],
                 },
@@ -74,19 +74,20 @@ export const plugin: PluginDefinition = {
                     if (values.json_filter !== undefined && values.json_filter !== "") {
                         let filtered: object;
                         try {
-                            // NB: this always returns the first item
                             filtered = JSONPath({
                                 path: values.json_filter,
                                 json: json,
-                            })[0];
-                            return JSON.stringify(filtered).toString();
+                                wrap: false,
+                            });
+                            // Strip quotes from filtered object for "raw" mode
+                            return JSON.stringify(filtered).replaceAll('"', "");
                         } catch (err) {
                             const err_m = (err as Error).message;
                             console.error(`JSON filtering failed: ${err_m}`);
                             return err_m;
                         }
                     }
-                    return JSON.stringify(json).toString();
+                    return JSON.stringify(json);
                 }
 
                 return exec_out;
