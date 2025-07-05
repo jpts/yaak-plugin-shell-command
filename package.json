@@ -1,5 +1,9 @@
 {
   "name": "yaak-plugin-shell-command",
+  "displayName": "Shell Command",
+  "description": "A plugin for executing commands",
+  "homepage": "https://github.com/jpts/yaak-plugin-shell-command",
+  "license": "MIT",
   "private": true,
   "version": "0.0.1",
   "scripts": {
