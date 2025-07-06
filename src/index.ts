@@ -1,6 +1,8 @@
 import type { CallTemplateFunctionArgs, Context, PluginDefinition } from "@yaakapp/api";
 
 import { execSync } from "node:child_process";
+import * as path from "path";
+import * as fs from "fs/promises";
 
 export const plugin: PluginDefinition = {
     templateFunctions: [
@@ -17,11 +19,12 @@ export const plugin: PluginDefinition = {
                     type: "select",
                     name: "interpreter",
                     label: "Shell Intepreter",
-                    defaultValue: "/bin/sh",
+                    defaultValue: "sh",
                     options: [
-                        { label: "Bash", value: "/bin/bash" },
-                        { label: "Zsh", value: "/bin/zsh" },
-                        { label: "sh", value: "/bin/sh" },
+                        { label: "sh", value: "sh" },
+                        { label: "bash", value: "bash" },
+                        { label: "zsh", value: "zsh" },
+                        { label: "fish", value: "fish" },
                     ],
                 }
             ],
@@ -30,6 +33,13 @@ export const plugin: PluginDefinition = {
                 { values, purpose }: CallTemplateFunctionArgs,
             ): Promise<string | null> => {
                 if (!values.cmd || !values.interpreter) return null;
+
+                var interp = await findBinPath(values.interpreter)
+                if (interp === null) {
+                  const err = `${values.interpreter}: executable not found`
+                  console.error(err)
+                  return err
+                }
 
                 console.log(`Running command with ${values.interpreter}: ${values.cmd}`);
 
@@ -51,3 +61,24 @@ export const plugin: PluginDefinition = {
         },
     ],
 };
+
+
+async function findBinPath(bin: string) {
+    const pathEnv = process.env.PATH || "";
+    const pathDirs = pathEnv
+        .split(path.delimiter)
+        .filter(Boolean);
+    const bins = pathDirs.flatMap((dir) => path.join(dir, bin));
+    try {
+        return await Promise.any(bins.map(statFile));
+    } catch (err) {
+        return null;
+    }
+
+    async function statFile(path: string) {
+        if ((await fs.stat(path)).isFile()) {
+            return path;
+        }
+        throw new Error("Not found");
+    }
+}
