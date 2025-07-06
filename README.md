@@ -10,4 +10,4 @@ npm run build
 
 ## Screenshots
 
-![img](img/plugin_ui.png)
+![img](img/plugin_ui_cowsay.png)
